@@ -40,7 +40,7 @@ The demos are contained in a single Godot project in the `demos` subdirectory, w
 
 Implements Conway's Game of Life in ECS.
 
-Demonstrates `FlecsWorld` node properties and the `WorldConfiguration` singleton, module loading, tag components, prefab-based entity creation, cached queries, scene-child access from ECS, ordered system phases, modeling grid cells as entities, precomputing neighbour references, using tags for state transitions, optimisation via selective matching of components in systems, rendering ECS state into a Godot texture each frame.
+Demonstrates `FlecsWorld` node properties and the `WorldConfiguration` singleton, module loading, tag components, prefab-based entity creation, cached queries, scene-child access from ECS, ordered system phases, modeling grid cells as entities, precomputing neighbour references, using tags for state transitions, optimisation by selective matching of components in systems, rendering ECS state into a Godot texture each frame.
 
 ### Surwave
 
