@@ -10,7 +10,7 @@ namespace stagehand {
     inline flecs::entity OnRender;
     inline flecs::entity PostRender;
 
-    REGISTER([](flecs::world &world) {
+    REGISTER_BASE_TYPES([](flecs::world &world) {
         OnEarlyUpdate = world.entity(stagehand::names::phases::ON_EARLY_UPDATE).add(flecs::Phase).depends_on(flecs::PreUpdate);
         world.entity(flecs::OnUpdate).depends_on(OnEarlyUpdate);
         OnLateUpdate = world.entity(stagehand::names::phases::ON_LATE_UPDATE).add(flecs::Phase).depends_on(flecs::OnUpdate);

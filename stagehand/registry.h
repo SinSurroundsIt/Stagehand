@@ -83,6 +83,15 @@ namespace stagehand {
     /// @param callback The callback to register.
     void register_callback(RegistrationCallback callback);
 
+    /// Register a component callback. Component callbacks run before all other callbacks, so prefabs and systems can use any component.
+    void register_component_callback(RegistrationCallback callback);
+
+    /// Register a base type callback. Base type callbacks run before component callbacks, so components can use base types as members.
+    void register_base_type_callback(RegistrationCallback callback);
+
+    struct BaseTypes {};
+    struct Components {};
+
     /// Helper struct for static auto-registration from translation units.
     /// Instantiating this struct with a callback will register it to be called during world initialization.
     struct Registry {
@@ -92,6 +101,8 @@ namespace stagehand {
         // and the world's scope will be temporarily set to that module
         // while the callback executes.
         Registry(const char *module_name, RegistrationCallback callback);
+        Registry(BaseTypes, RegistrationCallback callback);
+        Registry(Components, RegistrationCallback callback);
     };
 
 // Helper macros to create inline, translation-unit-unique registration objects.
@@ -107,6 +118,8 @@ namespace stagehand {
 #define STAGEHAND_UNIQUE_NAME(prefix) STAGEHAND_CONCAT(prefix, __LINE__)
 #endif
 #define REGISTER(...) inline stagehand::Registry STAGEHAND_UNIQUE_NAME(_stagehand_reg_)(__VA_ARGS__)
+#define REGISTER_BASE_TYPES(...) inline stagehand::Registry STAGEHAND_UNIQUE_NAME(_stagehand_reg_)(stagehand::BaseTypes{}, __VA_ARGS__)
+#define REGISTER_COMPONENTS(...) inline stagehand::Registry STAGEHAND_UNIQUE_NAME(_stagehand_reg_)(stagehand::Components{}, __VA_ARGS__)
 #define REGISTER_IN_MODULE(module, ...) inline stagehand::Registry STAGEHAND_UNIQUE_NAME(_stagehand_reg_)(#module, __VA_ARGS__)
 
     /// Template class for component registration with deferred chaining support.
@@ -117,7 +130,7 @@ namespace stagehand {
     template <typename T> class ComponentRegistrar {
       public:
         explicit ComponentRegistrar(RegistrationCallback base_callback) {
-            register_callback([base_callback = std::move(base_callback)](flecs::world &world) {
+            register_component_callback([base_callback = std::move(base_callback)](flecs::world &world) {
                 base_callback(world);
                 internal::initialize_singleton_value_if_needed<T>(world);
             });
@@ -130,7 +143,7 @@ namespace stagehand {
         /// world initialization.
         /// @param f A callable taking flecs::component<T>.
         template <typename F> ComponentRegistrar &then(F &&f) {
-            register_callback([f = std::forward<F>(f)](flecs::world &world) {
+            register_component_callback([f = std::forward<F>(f)](flecs::world &world) {
                 f(world.component<T>());
                 internal::initialize_singleton_value_if_needed<T>(world);
             });

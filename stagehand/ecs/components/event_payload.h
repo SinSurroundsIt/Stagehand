@@ -16,6 +16,6 @@ namespace stagehand {
         uint64_t source_entity_id = 0;
     };
 
-    REGISTER([](flecs::world &world) { world.component<EventPayload>("stagehand::EventPayload"); });
+    REGISTER_COMPONENTS([](flecs::world &world) { world.component<EventPayload>("stagehand::EventPayload"); });
 } // namespace stagehand
 

@@ -13,6 +13,16 @@ namespace stagehand {
             return callbacks;
         }
 
+        std::vector<RegistrationCallback> &get_base_type_callbacks() {
+            static std::vector<RegistrationCallback> callbacks;
+            return callbacks;
+        }
+
+        std::vector<RegistrationCallback> &get_component_callbacks() {
+            static std::vector<RegistrationCallback> callbacks;
+            return callbacks;
+        }
+
         /// Returns the static vector of module-scoped registration callbacks.
         /// Each entry pairs the module name with the callback that should be executed when that module is imported into a world.
         std::vector<std::pair<std::string, RegistrationCallback>> &get_module_callbacks() {
@@ -99,8 +109,36 @@ namespace stagehand {
         get_callbacks().push_back(std::move(callback));
     }
 
+    Registry::Registry(BaseTypes, RegistrationCallback callback) { register_base_type_callback(std::move(callback)); }
+
+    Registry::Registry(Components, RegistrationCallback callback) { register_component_callback(std::move(callback)); }
+
+    void register_base_type_callback(RegistrationCallback callback) {
+        if (!callback)
+            return;
+        std::lock_guard<std::mutex> lock(get_mutex());
+        get_base_type_callbacks().push_back(std::move(callback));
+    }
+
+    void register_component_callback(RegistrationCallback callback) {
+        if (!callback)
+            return;
+        std::lock_guard<std::mutex> lock(get_mutex());
+        get_component_callbacks().push_back(std::move(callback));
+    }
+
     void register_components_and_systems_with_world(flecs::world &world) {
         std::lock_guard<std::mutex> lock(get_mutex());
+        for (RegistrationCallback callback : get_base_type_callbacks()) {
+            if (callback != nullptr) {
+                callback(world);
+            }
+        }
+        for (RegistrationCallback callback : get_component_callbacks()) {
+            if (callback != nullptr) {
+                callback(world);
+            }
+        }
         // Only run non-module callbacks during global registration. Module callbacks are executed when their module is explicitly imported.
         for (RegistrationCallback callback : get_callbacks()) {
             if (callback != nullptr) {

@@ -234,7 +234,7 @@ template <typename T> void register_godot_members(flecs::component<T> c, Callabl
 template <typename T> void register_godot_members(flecs::component<T> c, RID *) {}
 template <typename T> void register_godot_members(flecs::component<T> c, Signal *) {}
 
-REGISTER([](flecs::world &world) {
+REGISTER_BASE_TYPES([](flecs::world &world) {
     /* Struct (Plain Old Data) Types
      * These types are re-implemented entirely within the godot-cpp binding and are perfect for ECS components.
      * They do not incur the overhead of function calls into the engine, and are cache-friendly and fast.
