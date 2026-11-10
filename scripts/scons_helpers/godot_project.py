@@ -61,12 +61,19 @@ def check_and_setup_project_file_structure(relative_path):
                         in_block = False
                         break
         
-        if block_content:
-            # Read existing .gitignore
-            cpp_gitignore_lines = []
-            if os.path.exists(gitignore_path):
-                with open(gitignore_path, "r") as f:
-                    cpp_gitignore_lines = f.readlines()
+        # Read existing .gitignore
+        cpp_gitignore_lines = []
+        if os.path.exists(gitignore_path):
+            with open(gitignore_path, "r") as f:
+                cpp_gitignore_lines = f.readlines()
+
+        # Leave the project's .gitignore alone when it has no Stagehand block but already ignores every entry of it
+        existing_entries = {line.strip() for line in cpp_gitignore_lines}
+        block_entries = {line.strip() for line in block_content if line.strip() and not line.strip().startswith("#")}
+        has_block = any(line.startswith(start_marker) for line in cpp_gitignore_lines)
+        already_ignored = bool(block_entries) and not has_block and block_entries <= existing_entries
+
+        if block_content and not already_ignored:
             
             # Reconstruct .gitignore with updated block
             new_cpp_gitignore_lines = []
@@ -97,7 +104,7 @@ def check_and_setup_project_file_structure(relative_path):
                     f.writelines(new_cpp_gitignore_lines)
                 
                 print(f"Notice: Updated {gitignore_path} with C++ build artifacts block.")
-        else:
+        elif not already_ignored:
             print(f"Warning: Could not find C++ build artifacts block in {root_gitignore_path}")
         
         # Create symbolic links to Stagehand configuration files
